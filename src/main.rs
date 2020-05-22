@@ -1,6 +1,5 @@
 use ggez::event::{self, EventHandler};
-use ggez::graphics::Rect;
-use ggez::{graphics, Context, ContextBuilder, GameResult};
+use ggez::{graphics, Context, GameResult};
 use rand;
 use rand::{Rng, ThreadRng};
 use std::collections::VecDeque;
@@ -60,24 +59,11 @@ where
 }
 
 impl Coord {
-    fn new(x: i16, y: i16) -> Self {
-        Coord { x, y }
-    }
-
     fn random(rng: &mut ThreadRng, max_x: i16, max_y: i16) -> Coord {
         let x: i16 = rng.gen_range(0, max_x);
         let y: i16 = rng.gen_range(0, max_y);
 
         Coord { x, y }
-    }
-
-    pub fn new_from_move(pos: Coord, dir: Direction) -> Self {
-        match dir {
-            Direction::Up => Coord::new(pos.x, (pos.y - 1).modulo(GRID_SIZE.1)),
-            Direction::Down => Coord::new(pos.x, (pos.y + 1).modulo(GRID_SIZE.1)),
-            Direction::Left => Coord::new((pos.x - 1).modulo(GRID_SIZE.0), pos.y),
-            Direction::Right => Coord::new((pos.x + 1).modulo(GRID_SIZE.0), pos.y),
-        }
     }
 }
 
@@ -192,12 +178,17 @@ impl EventHandler for Game {
         graphics::draw(
             ctx,
             &score_display,
-            (ggez::nalgebra::Point2::new(10.0,10.0), 0.0, graphics::WHITE),
+            (
+                ggez::nalgebra::Point2::new(10.0, 10.0),
+                0.0,
+                graphics::WHITE,
+            ),
         )?;
 
         if !self.snake.is_alive {
             let game_over_str = format!("GAME OVER! Press R to restart.");
-            let game_over_display = graphics::Text::new((game_over_str.clone(), self.assets.font, 32.0));
+            let game_over_display =
+                graphics::Text::new((game_over_str.clone(), self.assets.font, 32.0));
 
             let x = (SCREEN_SIZE.0 / 2.0) - (game_over_str.len() as f32 * 6.0);
             let y = (SCREEN_SIZE.1 / 2.0) - 32.0;
@@ -205,7 +196,11 @@ impl EventHandler for Game {
             graphics::draw(
                 ctx,
                 &game_over_display,
-                (ggez::nalgebra::Point2::new(x, y), 0.0, [1.0, 0.0, 0.0, 1.0].into()),
+                (
+                    ggez::nalgebra::Point2::new(x, y),
+                    0.0,
+                    [1.0, 0.0, 0.0, 1.0].into(),
+                ),
             )?;
         }
 
@@ -282,18 +277,7 @@ impl Snake {
     }
 
     fn check_collison(&self, r: &Coord) -> bool {
-        let head = &self.bits[0];
-
-        let collision = head == r;
-        //let collision = r.x < head.x || r.x + r.w > head.x || r.y < head.y || r.y + r.h > head.y;
-
-        // DEBUG
-        if collision {
-            dbg!(&head);
-            dbg!(&r);
-        }
-
-        collision
+        &self.bits[0] == r
     }
 
     fn check_self_collision(&self) -> bool {
@@ -362,11 +346,8 @@ struct Food {
 }
 
 impl Food {
-    fn at_random_position(start_pos: Coord, rng: &mut ThreadRng) -> Self {
-        Self {
-            r: start_pos,
-            v: rng.gen_range(1, 10),
-        }
+    fn at_random_position(start_pos: Coord, _rng: &mut ThreadRng) -> Self {
+        Self { r: start_pos, v: 1 }
     }
 
     fn draw(&self, ctx: &mut Context) -> GameResult<()> {
