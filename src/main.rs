@@ -261,16 +261,20 @@ impl Snake {
         snake
     }
 
-    fn head(&self) -> &Coord {
-        &self.bits[0]
-    }
-
     fn kill(&mut self) {
         self.is_alive = false;
     }
 
     fn set_direction(&mut self, direction: Direction) {
-        self.direction = direction;
+        let new_direction = match (direction.clone(), self.direction.clone()) {
+            (Direction::Left, Direction::Right)
+            | (Direction::Right, Direction::Left)
+            | (Direction::Up, Direction::Down)
+            | (Direction::Down, Direction::Up) => self.direction.clone(),
+            (_, _) => direction,
+        };
+
+        self.direction = new_direction;
     }
 
     fn grow(&mut self) {
