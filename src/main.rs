@@ -36,7 +36,7 @@ const UPDATES_PER_SECOND: f32 = 17.0;
 const MILLIS_PER_UPDATE: u64 = (1.0 / UPDATES_PER_SECOND * 1000.0) as u64;
 
 #[derive(Debug, PartialEq, Clone)]
-struct Coord {
+struct Position {
     x: i16,
     y: i16,
 }
@@ -58,17 +58,17 @@ where
     }
 }
 
-impl Coord {
-    fn random(rng: &mut ThreadRng, max_x: i16, max_y: i16) -> Coord {
+impl Position {
+    fn random(rng: &mut ThreadRng, max_x: i16, max_y: i16) -> Position {
         let x: i16 = rng.gen_range(0, max_x);
         let y: i16 = rng.gen_range(0, max_y);
 
-        Coord { x, y }
+        Position { x, y }
     }
 }
 
-impl From<Coord> for graphics::Rect {
-    fn from(pos: Coord) -> Self {
+impl From<Position> for graphics::Rect {
+    fn from(pos: Position) -> Self {
         graphics::Rect::new_i32(
             pos.x as i32 * GRID_CELL_SIZE.0 as i32,
             pos.y as i32 * GRID_CELL_SIZE.1 as i32,
@@ -106,7 +106,7 @@ impl Game {
     fn new(ctx: &mut Context) -> GameResult<Self> {
         let mut rng = rand::thread_rng();
 
-        let snake_start = Coord::random(&mut rng, GRID_SIZE.0, GRID_SIZE.1);
+        let snake_start = Position::random(&mut rng, GRID_SIZE.0, GRID_SIZE.1);
 
         let assets = Assets::new(ctx)?;
 
@@ -126,7 +126,7 @@ impl Game {
     fn restart(&mut self) {
         self.score = 0;
 
-        let r = Coord::random(&mut self.rng, GRID_SIZE.0, GRID_SIZE.1);
+        let r = Position::random(&mut self.rng, GRID_SIZE.0, GRID_SIZE.1);
         self.snake = Snake::new(r);
     }
 }
@@ -153,7 +153,7 @@ impl EventHandler for Game {
             self.snake.update();
 
             if self.food.len() == 0 {
-                let r = Coord::random(&mut self.rng, GRID_SIZE.0, GRID_SIZE.1);
+                let r = Position::random(&mut self.rng, GRID_SIZE.0, GRID_SIZE.1);
                 let f = Food::at_random_position(r, &mut self.rng);
                 self.food.push(f);
             }
@@ -227,7 +227,7 @@ impl EventHandler for Game {
         }
     }
 }
-
+ 
 #[derive(Clone, Debug)]
 enum Direction {
     Left,
@@ -237,14 +237,14 @@ enum Direction {
 }
 
 struct Snake {
-    bits: Vec<Coord>,
+    bits: Vec<Position>,
     is_alive: bool,
     queued_grows: VecDeque<bool>,
     direction: Direction,
 }
 
 impl Snake {
-    fn new(start_rect: Coord) -> Self {
+    fn new(start_rect: Position) -> Self {
         let mut snake = Snake {
             bits: Vec::new(),
             is_alive: true,
@@ -276,7 +276,7 @@ impl Snake {
         self.queued_grows.push_back(true);
     }
 
-    fn check_collison(&self, r: &Coord) -> bool {
+    fn check_collison(&self, r: &Position) -> bool {
         &self.bits[0] == r
     }
 
@@ -341,12 +341,12 @@ impl Snake {
 }
 
 struct Food {
-    r: Coord,
+    r: Position,
     v: u32,
 }
 
 impl Food {
-    fn at_random_position(start_pos: Coord, _rng: &mut ThreadRng) -> Self {
+    fn at_random_position(start_pos: Position, _rng: &mut ThreadRng) -> Self {
         Self { r: start_pos, v: 1 }
     }
 
