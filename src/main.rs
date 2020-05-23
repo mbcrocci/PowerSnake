@@ -2,8 +2,12 @@ use ggez::event::{self, EventHandler};
 use ggez::{graphics, Context, GameResult};
 use rand;
 use rand::{Rng, ThreadRng};
-use std::collections::VecDeque;
 use std::time::{Duration, Instant};
+
+mod snake;
+use snake::{Snake, Direction};
+
+mod food; use food::Food;
 
 fn main() -> GameResult {
     // Make a Context.
@@ -36,7 +40,7 @@ const UPDATES_PER_SECOND: f32 = 17.0;
 const MILLIS_PER_UPDATE: u64 = (1.0 / UPDATES_PER_SECOND * 1000.0) as u64;
 
 #[derive(Debug, PartialEq, Clone)]
-struct Position {
+pub struct Position {
     x: i16,
     y: i16,
 }
@@ -225,141 +229,5 @@ impl EventHandler for Game {
             }
             _ => {}
         }
-    }
-}
- 
-#[derive(Clone, Debug)]
-enum Direction {
-    Left,
-    Right,
-    Up,
-    Down,
-}
-
-struct Snake {
-    bits: Vec<Position>,
-    is_alive: bool,
-    queued_grows: VecDeque<bool>,
-    direction: Direction,
-}
-
-impl Snake {
-    fn new(start_rect: Position) -> Self {
-        let mut snake = Snake {
-            bits: Vec::new(),
-            is_alive: true,
-            queued_grows: VecDeque::new(),
-            direction: Direction::Right,
-        };
-
-        snake.bits.push(start_rect);
-        snake
-    }
-
-    fn kill(&mut self) {
-        self.is_alive = false;
-    }
-
-    fn set_direction(&mut self, direction: Direction) {
-        let new_direction = match (direction.clone(), self.direction.clone()) {
-            (Direction::Left, Direction::Right)
-            | (Direction::Right, Direction::Left)
-            | (Direction::Up, Direction::Down)
-            | (Direction::Down, Direction::Up) => self.direction.clone(),
-            (_, _) => direction,
-        };
-
-        self.direction = new_direction;
-    }
-
-    fn grow(&mut self) {
-        self.queued_grows.push_back(true);
-    }
-
-    fn check_collison(&self, r: &Position) -> bool {
-        &self.bits[0] == r
-    }
-
-    fn check_self_collision(&self) -> bool {
-        for (i, bit) in self.bits.iter().enumerate() {
-            if i > 0 {
-                if self.check_collison(bit) {
-                    return true;
-                }
-            }
-        }
-        false
-    }
-
-    fn update(&mut self) {
-        let previous_state = self.bits.to_vec();
-
-        for (i, bit) in &mut self.bits.iter_mut().enumerate() {
-            if i > 0 {
-                bit.x = previous_state[i - 1].x;
-                bit.y = previous_state[i - 1].y;
-            } else {
-                match self.direction {
-                    Direction::Left => bit.x = (bit.x - 1).modulo(GRID_SIZE.0),
-                    Direction::Right => bit.x = (bit.x + 1).modulo(GRID_SIZE.0),
-                    Direction::Up => bit.y = (bit.y - 1).modulo(GRID_SIZE.1),
-                    Direction::Down => bit.y = (bit.y + 1).modulo(GRID_SIZE.1),
-                };
-            }
-        }
-
-        // Can only grow once per update
-        if let Some(_) = self.queued_grows.pop_front() {
-            let last = previous_state.last().unwrap();
-            self.bits.push((*last).clone());
-        }
-
-        if self.check_self_collision() {
-            self.kill();
-        }
-    }
-
-    fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
-        for (i, r) in self.bits.iter().enumerate() {
-            let color = if i == 0 {
-                [1.0, 1.0, 1.0, 1.0]
-            } else {
-                [1.0, 1.0, 0.0, 1.0]
-            };
-
-            let rm = graphics::Mesh::new_rectangle(
-                ctx,
-                graphics::DrawMode::fill(),
-                r.clone().into(),
-                color.into(),
-            )?;
-
-            graphics::draw(ctx, &rm, (ggez::mint::Point2 { x: 0.0, y: 0.0 },))?;
-        }
-        Ok(())
-    }
-}
-
-struct Food {
-    r: Position,
-    v: u32,
-}
-
-impl Food {
-    fn at_random_position(start_pos: Position, _rng: &mut ThreadRng) -> Self {
-        Self { r: start_pos, v: 1 }
-    }
-
-    fn draw(&self, ctx: &mut Context) -> GameResult<()> {
-        let r = graphics::Mesh::new_rectangle(
-            ctx,
-            graphics::DrawMode::fill(),
-            self.r.clone().into(),
-            [1.0, 0.0, 1.0, 1.0].into(),
-        )?;
-
-        graphics::draw(ctx, &r, (ggez::mint::Point2 { x: 0.0, y: 0.0 },))?;
-
-        Ok(())
     }
 }
