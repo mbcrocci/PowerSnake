@@ -1,6 +1,5 @@
-use crate::{Position, GRID_SIZE, ModuloSigned, GameResult, Context, graphics};
+use crate::{graphics, Context, GameResult, ModuloSigned, Position, GRID_SIZE};
 use std::collections::VecDeque;
-
 
 #[derive(Clone, Debug)]
 pub enum Direction {
@@ -56,10 +55,8 @@ impl Snake {
 
     pub fn check_self_collision(&self) -> bool {
         for (i, bit) in self.bits.iter().enumerate() {
-            if i > 0 {
-                if self.check_collison(bit) {
-                    return true;
-                }
+            if i > 0 && self.check_collison(bit) {
+                return true;
             }
         }
         false
@@ -113,4 +110,3 @@ impl Snake {
         Ok(())
     }
 }
-

@@ -1,13 +1,17 @@
 use ggez::event::{self, EventHandler};
 use ggez::{graphics, Context, GameResult};
-use rand;
 use rand::{Rng, ThreadRng};
+use std::rc::Rc;
 use std::time::{Duration, Instant};
 
 mod snake;
-use snake::{Snake, Direction};
+use snake::{Direction, Snake};
 
-mod food; use food::Food;
+mod food;
+use food::Food;
+
+mod power_up;
+use power_up::{PowerType, PowerUp};
 
 fn main() -> GameResult {
     // Make a Context.
@@ -94,16 +98,20 @@ impl Assets {
     }
 }
 
-struct Game {
+pub struct Game {
     snake: Snake,
     food: Vec<Food>,
     last_update: Instant,
     ms_per_update: Duration,
-    score: u32,
+
+    score: u16,
+    scored: bool,
 
     assets: Assets,
 
     rng: ThreadRng,
+
+    active_power_ups: Vec<(Rc<dyn PowerUp>, Instant)>,
 }
 
 impl Game {
@@ -119,11 +127,15 @@ impl Game {
             food: Vec::new(),
             last_update: Instant::now(),
             ms_per_update: Duration::from_millis(MILLIS_PER_UPDATE),
+
             score: 0,
+            scored: false,
 
             assets,
 
             rng,
+
+            active_power_ups: Vec::new(),
         })
     }
 
@@ -133,6 +145,14 @@ impl Game {
         let r = Position::random(&mut self.rng, GRID_SIZE.0, GRID_SIZE.1);
         self.snake = Snake::new(r);
     }
+
+    fn create_new_food(&mut self) {
+        let r = Position::random(&mut self.rng, GRID_SIZE.0, GRID_SIZE.1);
+        let p = Food::random_power(&mut self.rng);
+
+        let f = Food::at_random_position(r, p, &mut self.rng);
+        self.food.push(f);
+    }
 }
 
 impl EventHandler for Game {
@@ -140,11 +160,20 @@ impl EventHandler for Game {
         if Instant::now() - self.last_update >= self.ms_per_update && self.snake.is_alive {
             let mut to_delete: Vec<usize> = Vec::new();
 
-            for (i, f) in self.food.iter_mut().enumerate() {
+            let food = self.food.clone();
+            for (i, f) in food.iter().enumerate() {
                 if self.snake.check_collison(&f.r) {
-                    dbg!("FOOOD colision");
+                    if let Some(power_up) = &f.power {
+                        let power_up = power_up.clone();
+
+                        power_up.on_activation(self);
+
+                        self.active_power_ups.push((power_up, Instant::now()));
+                    }
+
                     self.snake.grow();
-                    self.score += f.v;
+                    self.score += 1;
+                    self.scored = true;
 
                     to_delete.push(i);
                 }
@@ -153,15 +182,27 @@ impl EventHandler for Game {
             to_delete.iter().for_each(|i| {
                 self.food.remove(*i);
             });
+            to_delete.clear();
 
             self.snake.update();
 
+            let power_ups = self.active_power_ups.clone();
+            for (i, (power_up, added_at)) in power_ups.iter().enumerate() {
+                power_up.on_update(self);
+
+                if power_up.should_remove(*added_at) {
+                    to_delete.push(i);
+                }
+            }
+            to_delete.iter().for_each(|i| {
+                self.active_power_ups.remove(*i);
+            });
+
             if self.food.len() == 0 {
-                let r = Position::random(&mut self.rng, GRID_SIZE.0, GRID_SIZE.1);
-                let f = Food::at_random_position(r, &mut self.rng);
-                self.food.push(f);
+                self.create_new_food();
             }
 
+            self.scored = false;
             self.last_update = Instant::now();
         }
 
