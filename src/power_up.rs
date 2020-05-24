@@ -1,4 +1,5 @@
 use crate::{Duration, Game, Instant};
+use std::fmt;
 
 #[derive(Debug, Clone)]
 pub enum PowerType {
@@ -7,7 +8,7 @@ pub enum PowerType {
     Invulnerability,
 }
 
-pub trait PowerUp {
+pub trait PowerUp: fmt::Display {
     fn on_activation(&self, _game: &mut Game) {}
     fn on_update(&self, _game: &mut Game) {}
     fn on_deactivation(&self, _game: &mut Game) {}
@@ -37,6 +38,12 @@ impl PowerUp for ScoreMultiplier {
     }
 }
 
+impl fmt::Display for ScoreMultiplier {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Score x{}", self.mult_by)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Invulnerability {}
 
@@ -49,5 +56,11 @@ impl PowerUp for Invulnerability {
 
     fn should_remove(&self, added_at: Instant) -> bool {
         Instant::now().duration_since(added_at) > Duration::from_secs(20)
+    }
+}
+
+impl fmt::Display for Invulnerability {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Invulnerable!!!")
     }
 }

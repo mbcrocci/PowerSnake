@@ -230,6 +230,22 @@ impl EventHandler for Game {
             ),
         )?;
 
+        let mut p_string = String::new();
+        for (power_up, _) in self.active_power_ups.clone().iter() {
+            p_string.push_str(&format!("{}\n", power_up));
+        }
+
+        let p_display = graphics::Text::new((p_string, self.assets.font, 32.0));
+        graphics::draw(
+            ctx,
+            &p_display,
+            (
+                ggez::nalgebra::Point2::new(SCREEN_SIZE.0-200.0, 10.0),
+                0.0,
+                graphics::WHITE,
+            ),
+        )?;
+
         if !self.snake.is_alive {
             let game_over_str = format!("GAME OVER! Press R to restart.");
             let game_over_display =
