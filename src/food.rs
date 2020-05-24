@@ -16,7 +16,7 @@ impl Food {
         if probability < 0.1 {
             PowerType::Invulnerability
         } else if probability < 0.25 {
-            let v: u16 = rng.gen_range(0, 5);
+            let v: u16 = rng.gen_range(2, 5);
             PowerType::ScoreMultiplier(v)
         } else {
             PowerType::None

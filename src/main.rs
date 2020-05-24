@@ -1,8 +1,12 @@
-use ggez::event::{self, EventHandler};
-use ggez::{graphics, Context, GameResult};
+use ggez::{
+    event::{self, EventHandler},
+    graphics, Context, GameResult,
+};
 use rand::{Rng, ThreadRng};
-use std::rc::Rc;
-use std::time::{Duration, Instant};
+use std::{
+    rc::Rc,
+    time::{Duration, Instant},
+};
 
 mod snake;
 use snake::{Direction, Snake};
