@@ -236,14 +236,11 @@ impl EventHandler for Game {
         }
 
         let p_display = graphics::Text::new((p_string, self.assets.font, 32.0));
+        let x = SCREEN_SIZE.0 - (p_display.dimensions(ctx).0 + 10) as f32;
         graphics::draw(
             ctx,
             &p_display,
-            (
-                ggez::nalgebra::Point2::new(SCREEN_SIZE.0-200.0, 10.0),
-                0.0,
-                graphics::WHITE,
-            ),
+            (ggez::nalgebra::Point2::new(x, 10.0), 0.0, graphics::WHITE),
         )?;
 
         if !self.snake.is_alive {
@@ -251,8 +248,8 @@ impl EventHandler for Game {
             let game_over_display =
                 graphics::Text::new((game_over_str.clone(), self.assets.font, 32.0));
 
-            let x = (SCREEN_SIZE.0 / 2.0) - (game_over_str.len() as f32 * 6.0);
-            let y = (SCREEN_SIZE.1 / 2.0) - 32.0;
+            let x = (SCREEN_SIZE.0 / 2.0) - (game_over_display.dimensions(ctx).0 / 2) as f32;
+            let y = (SCREEN_SIZE.1 / 2.0) - (game_over_display.dimensions(ctx).1 / 2) as f32;
 
             graphics::draw(
                 ctx,
