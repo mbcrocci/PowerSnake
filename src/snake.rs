@@ -36,15 +36,7 @@ impl Snake {
     }
 
     pub fn set_direction(&mut self, direction: Direction) {
-        let new_direction = match (direction.clone(), self.direction.clone()) {
-            (Direction::Left, Direction::Right)
-            | (Direction::Right, Direction::Left)
-            | (Direction::Up, Direction::Down)
-            | (Direction::Down, Direction::Up) => self.direction.clone(),
-            (_, _) => direction,
-        };
-
-        self.queued_directions.push_back(new_direction);
+        self.queued_directions.push_back(direction);
     }
 
     pub fn grow(&mut self) {
@@ -67,7 +59,21 @@ impl Snake {
     pub fn update(&mut self) {
 
         if let Some(direction) = self.queued_directions.pop_front() {
-            self.direction = direction;
+            let should_change = match (direction.clone(), self.direction.clone()) {
+                (Direction::Left, Direction::Left)
+                | (Direction::Right, Direction::Right)
+                | (Direction::Up, Direction::Up)
+                | (Direction::Down, Direction::Down)
+                | (Direction::Left, Direction::Right)
+                | (Direction::Right, Direction::Left)
+                | (Direction::Up, Direction::Down)
+                | (Direction::Down, Direction::Up) => false,
+                (_, _) => true,
+            };
+    
+            if should_change {
+                self.direction = direction;
+            }
         }
 
         let previous_state = self.bits.to_vec();
