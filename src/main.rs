@@ -66,7 +66,7 @@ where
 {
     fn modulo(&self, n: T) -> T {
         // Because of our trait bounds, we can now apply these operators.
-        (self.clone() % n.clone() + n.clone()) % n.clone()
+        (self.clone() % n.clone() + n.clone()) % n
     }
 }
 
@@ -202,7 +202,7 @@ impl EventHandler for Game {
                 self.active_power_ups.remove(*i);
             });
 
-            if self.food.len() == 0 {
+            if self.food.is_empty() {
                 self.create_new_food();
             }
 
@@ -248,9 +248,9 @@ impl EventHandler for Game {
         )?;
 
         if !self.snake.is_alive {
-            let game_over_str = format!("GAME OVER! Press R to restart.");
+            let game_over_str = "GAME OVER! Press R to restart.".to_string();
             let game_over_display =
-                graphics::Text::new((game_over_str.clone(), self.assets.font, 32.0));
+                graphics::Text::new((game_over_str, self.assets.font, 32.0));
 
             let x = (SCREEN_SIZE.0 / 2.0) - (game_over_display.dimensions(ctx).0 / 2) as f32;
             let y = (SCREEN_SIZE.1 / 2.0) - (game_over_display.dimensions(ctx).1 / 2) as f32;

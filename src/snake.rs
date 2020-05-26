@@ -87,7 +87,7 @@ impl Snake {
         }
 
         // Can only grow once per update
-        if let Some(_) = self.queued_grows.pop_front() {
+        if self.queued_grows.pop_front().is_some() {
             let last = previous_state.last().unwrap();
             self.bits.push((*last).clone());
         }
