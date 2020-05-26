@@ -13,6 +13,7 @@ pub struct Snake {
     bits: Vec<Position>,
     pub is_alive: bool,
     queued_grows: VecDeque<bool>,
+    queued_directions: VecDeque<Direction>,
     direction: Direction,
 }
 
@@ -22,6 +23,7 @@ impl Snake {
             bits: Vec::new(),
             is_alive: true,
             queued_grows: VecDeque::new(),
+            queued_directions: VecDeque::new(),
             direction: Direction::Right,
         };
 
@@ -42,7 +44,7 @@ impl Snake {
             (_, _) => direction,
         };
 
-        self.direction = new_direction;
+        self.queued_directions.push_back(new_direction);
     }
 
     pub fn grow(&mut self) {
@@ -63,6 +65,11 @@ impl Snake {
     }
 
     pub fn update(&mut self) {
+
+        if let Some(direction) = self.queued_directions.pop_front() {
+            self.direction = direction;
+        }
+
         let previous_state = self.bits.to_vec();
 
         for (i, bit) in &mut self.bits.iter_mut().enumerate() {
