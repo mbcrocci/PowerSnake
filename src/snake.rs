@@ -56,22 +56,24 @@ impl Snake {
         false
     }
 
+    fn should_change_direction(&self, new_direction: &Direction) -> bool {
+        match (new_direction, self.direction.clone()) {
+            (Direction::Left, Direction::Left)
+            | (Direction::Right, Direction::Right)
+            | (Direction::Up, Direction::Up)
+            | (Direction::Down, Direction::Down)
+            | (Direction::Left, Direction::Right)
+            | (Direction::Right, Direction::Left)
+            | (Direction::Up, Direction::Down)
+            | (Direction::Down, Direction::Up) => false,
+            (_, _) => true,
+        }
+    }
+
     pub fn update(&mut self) {
 
         if let Some(direction) = self.queued_directions.pop_front() {
-            let should_change = match (direction.clone(), self.direction.clone()) {
-                (Direction::Left, Direction::Left)
-                | (Direction::Right, Direction::Right)
-                | (Direction::Up, Direction::Up)
-                | (Direction::Down, Direction::Down)
-                | (Direction::Left, Direction::Right)
-                | (Direction::Right, Direction::Left)
-                | (Direction::Up, Direction::Down)
-                | (Direction::Down, Direction::Up) => false,
-                (_, _) => true,
-            };
-    
-            if should_change {
+            if self.should_change_direction(&direction) {
                 self.direction = direction;
             }
         }
